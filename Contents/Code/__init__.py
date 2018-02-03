@@ -135,7 +135,7 @@ class Tvheadend(object):
 
     @staticmethod
     def Recordings():
-        entries = Tvheadend.fetch('/api/dvr/entry/grid_finished?limit=10000')['entries']
+        entries = Tvheadend.fetch('/api/dvr/entry/grid_finished?limit=999999999')['entries']
         return dict((entry['filename'], entry) for entry in entries)
 
     @staticmethod
