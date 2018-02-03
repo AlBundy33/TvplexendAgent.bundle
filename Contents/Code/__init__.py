@@ -70,6 +70,8 @@ class TvplexendAgent(Agent.Movies):
         filename = media.items[0].parts[0].file
 
         if filename not in recordings:
+            #for r in recordings:
+            #    Log.Info('>> ' + r)
             Log.Info('No Tvheadend recording information found for ' + filename)
             return
 
@@ -95,6 +97,13 @@ class TvplexendAgent(Agent.Movies):
         stop = stopDateTime.strftime('%H:%M')
 
         title = recording['disp_title']
+
+        if recording['disp_subtitle']:
+            if len(recording['disp_subtitle']) > 0:
+                title = '%s - %s' % (title, recording['disp_subtitle'])
+
+        if 'directory' in recording:
+            metadata.collections.add(recording['directory'])
 
         if Prefs['includeDatetimeInTitle']:
             title = '%s (%s %s)' % (title, day, start)
