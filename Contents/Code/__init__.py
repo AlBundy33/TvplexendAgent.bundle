@@ -65,22 +65,36 @@ class TvplexendAgent(Agent.Movies):
         'com.plexapp.agents.themoviedb'
     ]
 
+    def build_title(self, recording, includeDatetimeInTitle):
+        title = recording['disp_title']
+
+        if recording['disp_subtitle']:
+            if len(recording['disp_subtitle']) > 0:
+                title = '%s - %s' % (title, recording['disp_subtitle'])
+
+        if includeDatetimeInTitle:
+            startDateTime = Datetime.FromTimestamp(recording['start'])
+            day = startDateTime.strftime('%d.%m.%Y')
+            start = startDateTime.strftime('%H:%M')
+            title = '%s (%s %s)' % (title, day, start)
+
+        return title
+
     def search(self, results, media, lang):
         recordings = Recordings()
         filename = media.items[0].parts[0].file
 
         if filename not in recordings:
-            #for r in recordings:
-            #    Log.Info('>> ' + r)
             Log.Info('No Tvheadend recording information found for ' + filename)
             return
 
         recording = recordings[filename]
+        Log.Info('Recording found for ' + filename)
 
         results.Append(
             MetadataSearchResult(
                 id=recording['uuid'],
-                name=recording['disp_title'],
+                name=self.build_title(recording, Prefs['includeDatetimeInTitle']),
                 lang=lang,
                 score=100
             )
@@ -96,17 +110,10 @@ class TvplexendAgent(Agent.Movies):
         start = startDateTime.strftime('%H:%M')
         stop = stopDateTime.strftime('%H:%M')
 
-        title = recording['disp_title']
-
-        if recording['disp_subtitle']:
-            if len(recording['disp_subtitle']) > 0:
-                title = '%s - %s' % (title, recording['disp_subtitle'])
+        title = self.build_title(recording, Prefs['includeDatetimeInTitle'])
 
         if 'directory' in recording:
             metadata.collections.add(recording['directory'])
-
-        if Prefs['includeDatetimeInTitle']:
-            title = '%s (%s %s)' % (title, day, start)
 
         metadata.title = title
         metadata.originally_available_at = startDateTime.date()
@@ -135,7 +142,7 @@ class Tvheadend(object):
 
     @staticmethod
     def Recordings():
-        entries = Tvheadend.fetch('/api/dvr/entry/grid_finished?limit=999999999')['entries']
+        entries = Tvheadend.fetch('/api/dvr/entry/grid_finished', {}, {"limit": 999999999})['entries']
         return dict((entry['filename'], entry) for entry in entries)
 
     @staticmethod
