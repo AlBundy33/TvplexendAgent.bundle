@@ -111,9 +111,10 @@ class TvplexendAgent(Agent.Movies):
         stop = stopDateTime.strftime('%H:%M')
 
         title = self.build_title(recording, Prefs['includeDatetimeInTitle'])
-
-        if 'directory' in recording:
+        if 'directory' in recording and recording['directory']:
             metadata.collections.add(recording['directory'])
+        elif 'autorec' in recording and recording['autorec'] and 'disp_title' in recording and recording['disp_title']:
+            metadata.collections.add(recording['disp_title'])
 
         metadata.title = title
         metadata.originally_available_at = startDateTime.date()
